@@ -294,3 +294,36 @@ gs_clf = gs_clf.fit(DataPrep.train_news['Statement'][:10000],DataPrep.train_news
 gs_clf.best_score_
 gs_clf.best_params_
 gs_clf.cv_results_
+
+#by running above commands we can find the model with best performing parameters
+
+
+#running both random forest and logistic regression models again with best parameter found with GridSearch method
+random_forest_final = Pipeline([
+        ('rf_tfidf',TfidfVectorizer(stop_words='english',ngram_range=(1,3),use_idf=True,smooth_idf=True)),
+        ('rf_clf',RandomForestClassifier(n_estimators=300,n_jobs=3,max_depth=10))
+        ])
+
+random_forest_final.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_rf_final = random_forest_final.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_rf_final == DataPrep.test_news['Label'])
+print(metrics.classification_report(DataPrep.test_news['Label'], predicted_rf_final))
+
+logR_pipeline_final = Pipeline([
+        #('LogRCV',countV_ngram),
+        ('LogR_tfidf',TfidfVectorizer(stop_words='english',ngram_range=(1,5),use_idf=True,smooth_idf=False)),
+        ('LogR_clf',LogisticRegression(penalty="l2",C=1))
+        ])
+
+logR_pipeline_final.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_LogR_final = logR_pipeline_final.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_LogR_final == DataPrep.test_news['Label'])
+#accuracy = 0.62
+print(metrics.classification_report(DataPrep.test_news['Label'], predicted_LogR_final))
+
+
+"""
+by running both random forest and logistic regression with GridSearch's best parameter estimation, we found that for random 
+forest model with n-gram has better accuracty than with the parameter estimated. The logistic regression model with best parameter 
+has almost similar performance as n-gram model so logistic regression will be out choice of model for prediction.
+"""
