@@ -327,3 +327,67 @@ by running both random forest and logistic regression with GridSearch's best par
 forest model with n-gram has better accuracty than with the parameter estimated. The logistic regression model with best parameter 
 has almost similar performance as n-gram model so logistic regression will be out choice of model for prediction.
 """
+
+# saving best model to the disk
+model_file = 'final_model.sav'
+pickle.dump(logR_pipeline_ngram, open(model_file, 'wb'))
+
+
+# Plotting learing curve
+def plot_learing_curve(pipeline, title):
+    size = 10000
+    cv = KFold(size, shuffle=True)
+
+    X = DataPrep.train_news["Statement"]
+    y = DataPrep.train_news["Label"]
+
+    pl = pipeline
+    pl.fit(X, y)
+
+    train_sizes, train_scores, test_scores = learning_curve(pl, X, y, n_jobs=-1, cv=cv,
+                                                            train_sizes=np.linspace(.1, 1.0, 5), verbose=0)
+
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+
+    plt.figure()
+    plt.title(title)
+    plt.legend(loc="best")
+    plt.xlabel("Training examples")
+    plt.ylabel("Score")
+    plt.gca().invert_yaxis()
+
+    # box-like grid
+    plt.grid()
+
+    # plot the std deviation as a transparent range at each training set size
+    plt.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1,
+                     color="r")
+    plt.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.1,
+                     color="g")
+
+    # plot the average training and test score lines at each training set size
+    plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
+    plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
+
+    # sizes the window for readability and displays the plot
+    # shows error from 0 to 1.1
+    plt.ylim(-.1, 1.1)
+    plt.show()
+
+
+# below command will plot learing curves for each of the classifiers
+plot_learing_curve(logR_pipeline_ngram, "Naive-bayes Classifier")
+plot_learing_curve(nb_pipeline_ngram, "LogisticRegression Classifier")
+plot_learing_curve(svm_pipeline_ngram, "SVM Classifier")
+plot_learing_curve(sgd_pipeline_ngram, "SGD Classifier")
+plot_learing_curve(random_forest_ngram, "RandomForest Classifier")
+
+"""
+by plotting the learning cureve for logistic regression, it can be seen that cross-validation score is stagnating throughout and it 
+is unable to learn from data. Also we see that there are high errors that indicates model is simple and we may want to increase the
+model complexity.
+"""
+
