@@ -253,3 +253,32 @@ from the confusion matrix, we can see that random forest and logistic regression
 in terms of precision and recall (take a look into false positive and true negative counts which appeares
 to be low compared to rest of the models)
 """
+
+#grid-search parameter optimization
+#random forest classifier parameters
+parameters = {'rf_tfidf__ngram_range': [(1, 1), (1, 2),(1,3),(1,4),(1,5)],
+               'rf_tfidf__use_idf': (True, False),
+               'rf_clf__max_depth': (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)
+}
+
+gs_clf = GridSearchCV(random_forest_ngram, parameters, n_jobs=-1)
+gs_clf = gs_clf.fit(DataPrep.train_news['Statement'][:10000],DataPrep.train_news['Label'][:10000])
+
+gs_clf.best_score_
+gs_clf.best_params_
+gs_clf.cv_results_
+
+#logistic regression parameters
+parameters = {'LogR_tfidf__ngram_range': [(1, 1), (1, 2),(1,3),(1,4),(1,5)],
+               'LogR_tfidf__use_idf': (True, False),
+               'LogR_tfidf__smooth_idf': (True, False)
+}
+
+gs_clf = GridSearchCV(logR_pipeline_ngram, parameters, n_jobs=-1)
+gs_clf = gs_clf.fit(DataPrep.train_news['Statement'][:10000],DataPrep.train_news['Label'][:10000])
+
+gs_clf.best_score_
+gs_clf.best_params_
+gs_clf.cv_results_
+
+#
