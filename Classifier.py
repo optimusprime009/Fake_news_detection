@@ -41,8 +41,109 @@ np.mean(predicted_nb == DataPrep.test_news['Label'])
 logR_pipeline = Pipeline([
     ('LogRCV', FeatureSelection.countV),
     ('LogR_clf', LogisticRegression())
-])
+    ])
 
 logR_pipeline.fit(DataPrep.train_news['Statement'], DataPrep.train_news['Label'])
 predicted_LogR = logR_pipeline.predict(DataPrep.test_news['Statement'])
 np.mean(predicted_LogR == DataPrep.test_news['Label'])
+
+
+#building Linear SVM classfier
+svm_pipeline = Pipeline([
+        ('svmCV',FeatureSelection.countV),
+        ('svm_clf',svm.LinearSVC())
+        ])
+
+svm_pipeline.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_svm = svm_pipeline.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_svm == DataPrep.test_news['Label'])
+
+
+#using SVM Stochastic Gradient Descent on hinge loss
+sgd_pipeline = Pipeline([
+        ('svm2CV',FeatureSelection.countV),
+        ('svm2_clf',SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, n_iter=5))
+        ])
+
+sgd_pipeline.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_sgd = sgd_pipeline.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_sgd == DataPrep.test_news['Label'])
+
+
+# random forest
+random_forest = Pipeline([
+    ('rfCV', FeatureSelection.countV),
+    ('rf_clf', RandomForestClassifier(n_estimators=200, n_jobs=3))
+])
+
+random_forest.fit(DataPrep.train_news['Statement'], DataPrep.train_news['Label'])
+predicted_rf = random_forest.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_rf == DataPrep.test_news['Label'])
+
+
+# User defined functon for K-Fold cross validatoin
+def build_confusion_matrix(classifier):
+    k_fold = KFold(n_splits=5)
+    scores = []
+    confusion = np.array([[0, 0], [0, 0]])
+
+    for train_ind, test_ind in k_fold.split(DataPrep.train_news):
+        train_text = DataPrep.train_news.iloc[train_ind]['Statement']
+        train_y = DataPrep.train_news.iloc[train_ind]['Label']
+
+        test_text = DataPrep.train_news.iloc[test_ind]['Statement']
+        test_y = DataPrep.train_news.iloc[test_ind]['Label']
+
+        classifier.fit(train_text, train_y)
+        predictions = classifier.predict(test_text)
+
+        confusion += confusion_matrix(test_y, predictions)
+        score = f1_score(test_y, predictions)
+        scores.append(score)
+
+    return (print('Total statements classified:', len(DataPrep.train_news)),
+    print('Score:', sum(scores) / len(scores)),
+    print('score length', len(scores)),
+    print('Confusion matrix:'),
+    print(confusion))
+
+# K-fold cross validation for all classifiers
+build_confusion_matrix(nb_pipeline)
+build_confusion_matrix(logR_pipeline)
+build_confusion_matrix(svm_pipeline)
+build_confusion_matrix(sgd_pipeline)
+build_confusion_matrix(random_forest)
+
+#========================================================================================
+#Bag of words confusion matrix and F1 scores
+
+#Naive bayes
+# [2118 2370]
+# [1664 4088]
+# f1-Score: 0.669611539651
+
+#Logistic regression
+# [2252 2236]
+# [1933 3819]
+# f1-Score: 0.646909097798
+
+#svm
+# [2260 2228]
+# [2246 3506]
+#f1-score: 0.610468748792
+
+#sgdclassifier
+# [2414 2074]
+# [2042 3710]
+# f1-Score: 0.640874558778
+
+#random forest classifier
+# [1821 2667]
+# [1192 4560]
+# f1-Score: 0.702651511011
+#=========================================================================================
+
+
+"""So far we have used bag of words technique to extract the features and passed those featuers into classifiers. We have also seen the
+f1 scores of these classifiers. now lets enhance these features using term frequency weights with various n-grams
+"""
