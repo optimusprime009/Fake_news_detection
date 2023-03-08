@@ -147,3 +147,109 @@ build_confusion_matrix(random_forest)
 """So far we have used bag of words technique to extract the features and passed those featuers into classifiers. We have also seen the
 f1 scores of these classifiers. now lets enhance these features using term frequency weights with various n-grams
 """
+
+
+##Now using n-grams
+#naive-bayes classifier
+nb_pipeline_ngram = Pipeline([
+        ('nb_tfidf',FeatureSelection.tfidf_ngram),
+        ('nb_clf',MultinomialNB())])
+
+nb_pipeline_ngram.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_nb_ngram = nb_pipeline_ngram.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_nb_ngram == DataPrep.test_news['Label'])
+
+
+#logistic regression classifier
+logR_pipeline_ngram = Pipeline([
+        ('LogR_tfidf',FeatureSelection.tfidf_ngram),
+        ('LogR_clf',LogisticRegression(penalty="l2",C=1))
+        ])
+
+logR_pipeline_ngram.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_LogR_ngram = logR_pipeline_ngram.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_LogR_ngram == DataPrep.test_news['Label'])
+
+
+#linear SVM classifier
+svm_pipeline_ngram = Pipeline([
+        ('svm_tfidf',FeatureSelection.tfidf_ngram),
+        ('svm_clf',svm.LinearSVC())
+        ])
+
+svm_pipeline_ngram.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_svm_ngram = svm_pipeline_ngram.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_svm_ngram == DataPrep.test_news['Label'])
+
+
+#sgd classifier
+sgd_pipeline_ngram = Pipeline([
+         ('sgd_tfidf',FeatureSelection.tfidf_ngram),
+         ('sgd_clf',SGDClassifier(loss='hinge', penalty='l2', alpha=1e-3, n_iter=5))
+         ])
+
+sgd_pipeline_ngram.fit(DataPrep.train_news['Statement'],DataPrep.train_news['Label'])
+predicted_sgd_ngram = sgd_pipeline_ngram.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_sgd_ngram == DataPrep.test_news['Label'])
+
+# random forest classifier
+random_forest_ngram = Pipeline([
+    ('rf_tfidf', FeatureSelection.tfidf_ngram),
+    ('rf_clf', RandomForestClassifier(n_estimators=300, n_jobs=3))
+])
+
+random_forest_ngram.fit(DataPrep.train_news['Statement'], DataPrep.train_news['Label'])
+predicted_rf_ngram = random_forest_ngram.predict(DataPrep.test_news['Statement'])
+np.mean(predicted_rf_ngram == DataPrep.test_news['Label'])
+
+
+#K-fold cross validation for all classifiers
+build_confusion_matrix(nb_pipeline_ngram)
+build_confusion_matrix(logR_pipeline_ngram)
+build_confusion_matrix(svm_pipeline_ngram)
+build_confusion_matrix(sgd_pipeline_ngram)
+build_confusion_matrix(random_forest_ngram)
+
+#========================================================================================
+#n-grams & tfidf confusion matrix and F1 scores
+
+#Naive bayes
+# [841 3647]
+# [427 5325]
+# f1-Score: 0.723262051071
+
+#Logistic regression
+# [1617 2871]
+# [1097 4655]
+# f1-Score: 0.70113000531
+
+#svm
+# [2016 2472]
+# [1524 4228]
+# f1-Score: 0.67909201429
+
+#sgdclassifier
+# [  10 4478]
+# [  13 5739]
+# f1-Score: 0.718731637053
+
+#random forest
+# [1979 2509]
+# [1630 4122]
+# f1-Score: 0.665720333284
+#=========================================================================================
+
+print(classification_report(DataPrep.test_news['Label'], predicted_nb_ngram))
+print(classification_report(DataPrep.test_news['Label'], predicted_LogR_ngram))
+print(classification_report(DataPrep.test_news['Label'], predicted_svm_ngram))
+print(classification_report(DataPrep.test_news['Label'], predicted_sgd_ngram))
+print(classification_report(DataPrep.test_news['Label'], predicted_rf_ngram))
+
+DataPrep.test_news['Label'].shape
+
+"""
+Out of all the models fitted, we would take 2 best performing model. we would call them candidate models
+from the confusion matrix, we can see that random forest and logistic regression are best performing 
+in terms of precision and recall (take a look into false positive and true negative counts which appeares
+to be low compared to rest of the models)
+"""
