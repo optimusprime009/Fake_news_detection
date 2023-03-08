@@ -281,4 +281,16 @@ gs_clf.best_score_
 gs_clf.best_params_
 gs_clf.cv_results_
 
-#
+#linear SVM
+parameters = {'svm_tfidf__ngram_range': [(1, 1), (1, 2),(1,3),(1,4),(1,5)],
+               'svm_tfidf__use_idf': (True, False),
+               'svm_tfidf__smooth_idf': (True, False),
+               'svm_clf__penalty': ('l1','l2'),
+}
+
+gs_clf = GridSearchCV(svm_pipeline_ngram, parameters, n_jobs=-1)
+gs_clf = gs_clf.fit(DataPrep.train_news['Statement'][:10000],DataPrep.train_news['Label'][:10000])
+
+gs_clf.best_score_
+gs_clf.best_params_
+gs_clf.cv_results_
